@@ -128,23 +128,23 @@ with open(file_stats, 'r') as fp:
             species = re.search('(?<=\[)[^\]]+', line).group().replace('SPECIES_','')
             species = formatSpecies(species)
             
-        if re.search('[ ]+\.baseHP', line):
+        if re.search('[ \t]+\.baseHP', line):
             pokedex[species].bs.hp = int(re.search('\d+', line).group())
-        if re.search('[ ]+\.baseAttack', line):
+        if re.search('[ \t]+\.baseAttack', line):
             pokedex[species].bs.at = int(re.search('\d+', line).group())
-        if re.search('[ ]+\.baseDefense', line):
+        if re.search('[ \t]+\.baseDefense', line):
             pokedex[species].bs.df = int(re.search('\d+', line).group())
-        if re.search('[ ]+\.baseSpeed', line):
+        if re.search('[ \t]+\.baseSpeed', line):
             pokedex[species].bs.sp = int(re.search('\d+', line).group())
-        if re.search('[ ]+\.baseSpAttack', line):
+        if re.search('[ \t]+\.baseSpAttack', line):
             pokedex[species].bs.sa = int(re.search('\d+', line).group())
-        if re.search('[ ]+\.baseSpDefense', line):
+        if re.search('[ \t]+\.baseSpDefense', line):
             pokedex[species].bs.sd = int(re.search('\d+', line).group())
         
-        if re.search('[ ]+\.type', line):
+        if re.search('[ \t]+\.type', line):
             types = formatRegular(re.search('(?<=TYPE_)\w+', line).group())
             pokedex[species].types.append(types)
-        if re.search('[ ]+\.genderRatio', line):
+        if re.search('[ \t]+\.genderRatio', line):
             genderR = 255
             if re.search('PERCENT_FEMALE', line):
                 genderR = int(re.search('\d+', line).group())
@@ -163,9 +163,8 @@ species = ""
 with open(file_evo, 'r') as fp:
     lines = fp.readlines()
     for line in lines:
-        if re.search('^[ ]+\[SP',line):
+        if re.search('\[SP',line):
             species = formatSpecies(re.search('(?<=\[SPECIES_)\w+',line).group())
-            
             if not re.search('MEGA',line):
                 pokedex[species].nfe = True
 

@@ -1,4 +1,5 @@
 root: '/media/notalinux/_dev_sdb3/Website/reduxelite'
+#root: '/media/notalinux/_dev_sdb3/Website/elitereduxv152'
 # pokedex.py
 species: '/include/constants/species.h'
 entries: '/src/data/pokemon/pokedex_entries.h'
@@ -12,6 +13,7 @@ parties: '/src/data/trainer_parties.h'
 order: './trainer_order'
 trainers_output: './output/trainersets.js'
 trainers_map_output: './output/maps.json'
+trainers_idmap : './output/trainersidmaps.js'
 # sprite.py
 sprites: '/graphics/pokemon/'
 sprites_output: './output/sprites/'
@@ -19,10 +21,16 @@ sprites_output: './output/sprites/'
 # abilities: '/include/constants/abilities.h'
 abilities: '/src/data/text/abilities.h'
 abilities_output: './output/abilities.json'
-abilities_description_output: './output/abilities_description.js'
+abilities_description_output: './output/ability_descriptions.js'
 # moves.py
 moves: '/src/data/battle_moves.h'
 moves_output: './output/moves.json'
 # items.py
 items: ''
 items_output: './output/items.json'
+#saveloader.py
+save_abis:  '/include/constants/abilities.h'
+save_mons:  '/include/constants/species.h'
+save_moves: '/include/constants/moves.h'
+save_items: '/include/constants/items.h'
+save_output: './output/loadsave.js'

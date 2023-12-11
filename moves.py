@@ -11,15 +11,7 @@ def upcase_first_letter(s):
 def formatRegular(text):
     text = text.strip().lower()
     return " ".join(list(map(upcase_first_letter, text.split("_")))).replace(',','')
-'''Selected
-Both
-User
-Random
-Foes And Ally
-Depends
-All Battlers
-Opponents Field
-Ally'''
+
 def TargetParsing(target):
     if target == 'Both':
         return 'allAdjacentFoes'
@@ -80,8 +72,9 @@ def FlagParsing(flag):
         return ('multihit', 2)
     elif flag == 'FLAG_STAT_STAGES_IGNORED':
         return 'ignoreDefensive'
-    elif flag == 'FLAG_TARGET_ABILITY_IGNORED':
+    '''elif flag == 'FLAG_TARGET_ABILITY_IGNORED':
         return 'ignoreAbility'
+        '''
     
     global missedDict
     if flag not in missedDict:
@@ -99,6 +92,8 @@ def effectParsing(eff):
         return ('recoil', [1, 2])
     elif eff == 'EFFECT_ABSORB':
         return ('drain', [1,2])
+    elif eff == 'EFFECT_TRIPLE_KICK':
+        return('multihit', [1,3])
     return False
 
 def AttrToAttr(attr, line):

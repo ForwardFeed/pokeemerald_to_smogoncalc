@@ -37,12 +37,15 @@ class TrainerName(object):
         self.role = ""
         self.party = ""
         #self.inName = ""
+        self.tid = 0
     pass
 
 file_trainers = config['root'] + config['trainers']
 
-trainerNames = []
+
 trainer = ""
+trainerNames = []
+tid = 0
 with open(file_trainers, 'r') as fp:
     lines = fp.readlines()
     for line in lines:
@@ -62,6 +65,8 @@ with open(file_trainers, 'r') as fp:
         '''if re.match('        .trainerName', line):
             trainer.inName = re.search('(?<=\= _\(\")[^\"]*', line).group()'''
         if re.match('    \},', line):
+            trainer.tid = tid
+            tid = tid + 1
             trainerNames.append(trainer)
 #print(json.dumps([ob.__dict__ for ob in trainers]))
 
@@ -151,12 +156,15 @@ class FinalTrainer():
         self.opt_double = (False, False)
         self.double = False
         self.forc_double = False
+        self.tid = 0
 
 newTrainers = {}
 player = FinalTrainer()
 player.trn = "Player"
 player.mons = []
 newTrainers['Player'] = player
+trainerIdMap = [""] * len(trainerNames)
+
 for name in trainerNames:
     if not name.party:
         continue
@@ -175,12 +183,15 @@ for name in trainerNames:
                 flagRem = int(flagRem.group())
     else:
       fullname = name.role + " " + name.name
+      
+    trainerIdMap[name.tid] = fullname
     if  re.search(r'Insane$',name.party):
         flagInsane = True
         
     if not newTrainers.get(fullname):
         newTrainers[fullname] = FinalTrainer()
         newTrainers[fullname].trn = reformatTrainerName(fullname)
+        newTrainers[fullname].tid = name.tid
     if flagInsane == True:
         newTrainers[fullname].insane = findParty(name.party)
         newTrainers[fullname].mons = findParty(re.sub(r'Insane','',name.party))
@@ -191,8 +202,10 @@ for name in trainerNames:
     else:
         if flagRem == 1:
             newTrainers[fullname].mons = findParty(name.party)
-        else:
+        elif len(newTrainers[fullname].rem) > (flagRem - 2):
             newTrainers[fullname].rem[flagRem - 2] = findParty(name.party)
+        else:
+            newTrainers[fullname].mons = findParty(name.party)
 
 
 def trimTrainer(trainer):
@@ -311,6 +324,7 @@ with open(file_order, 'r') as fp:
                 continue
             trainer_dex.append(trainer)
             count +=1
+            trainerIdMap[trainer.tid] = trainer.trn
         else:
             dataT, nameT = filterTrainerName(line[0])
             del line[0]
@@ -319,6 +333,7 @@ with open(file_order, 'r') as fp:
                 missed.append(nameT)
                 continue
             trainer.trn = nameT
+            trainerIdMap[trainer.tid] = nameT
             for alt in line:
                 dataT, nameT = filterTrainerName(alt)
                 trainerAlt = findTrainer(dataT,allow_duplicate)
@@ -326,6 +341,7 @@ with open(file_order, 'r') as fp:
                     missed.append(dataT)
                     continue
                 trainerAlt.trn = nameT
+                trainerIdMap[trainerAlt.tid] = nameT
                 trainer.alt.append(trimTrainer(trainerAlt))
             trainer = trimTrainer(trainer)
             if not trainer:
@@ -344,6 +360,8 @@ for index in newTrainers.keys():
         
     trainer_dex.append(trainer)
 
+
+#make the trainer id map too
 #make forced double
 for i, trainer in enumerate(trainer_dex):
     if hasattr(trainer, 'forc_double'):
@@ -354,7 +372,9 @@ for i, trainer in enumerate(trainer_dex):
             print('TODO FORCED ALT' + trainer.trn)
         if hasattr(trainer, 'rem'):
             print('TODO FORCED REM' + trainer.trn)
+    del trainer.tid
     trainer_dex[i] = trainer
+
 
 
 output_file = open(config['trainers_output'], 'w')
@@ -362,6 +382,9 @@ output_file.write("var TRAINER_DEX =" + jsonpickle.encode(trainer_dex, unpicklab
 output_file.close()
 output_file = open(config['trainers_map_output'], 'w')
 output_file.write(jsonpickle.encode(maps, unpicklable=False))
+output_file.close()
+output_file = open(config['trainers_idmap'], 'w')
+output_file.write("var TRAINER_IDMAP =" + jsonpickle.encode(trainerIdMap, unpicklable=False))
 output_file.close()
 
 print('missed :' + jsonpickle.encode(missed, unpicklable=False))
