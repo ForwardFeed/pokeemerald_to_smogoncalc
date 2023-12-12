@@ -12,7 +12,7 @@ def abiFilter(abi):
     return False
     
 def abiFormat(abi):
-    return formatRegular(abi.replace('ABILITY_','').replace('{',''))
+    return abis_corrections[abi].replace("'", "\\'")
 
 def upcase_first_letter(s):
     return s[0].upper() + s[1:]
@@ -25,6 +25,25 @@ def formatSpecies(text):
 def formatRegular(text):
     text = text.strip().lower()
     return " ".join(list(map(upcase_first_letter, text.split("_"))))
+
+def abilityNaming():
+    dic = {}
+    file_abis = config['root'] + config['abilities']
+    whenRead = False
+    with open(file_abis, 'r') as fp:
+        lines = fp.readlines()
+        for line in lines:
+            if not whenRead and re.search('gAbilityNames', line):
+                whenRead = True
+                continue
+            if re.search('gAbilityDescriptionPointers', line):
+                break
+            if re.search('\[ABILITY_', line):
+                macro = re.search('ABILITY_[^\]]+', line).group()
+                val = re.search('(?<=\").*(?=\")', line).group()
+                dic[macro] = val
+    return dic
+abis_corrections = abilityNaming()
 
 file_species = config['root'] + config['species']
 file_entries = config['root'] + config['entries']
@@ -155,9 +174,9 @@ with open(file_stats, 'r') as fp:
                 genderR = 254 
             pokedex[species].genderR = genderR
         if re.search('[ ]+\.abilities', line):
-            pokedex[species].abilities = list(map(abiFormat,re.findall('([ \{]\w+)', line)))
+            pokedex[species].abilities = list(map(abiFormat,re.findall('ABILITY\w+', line)))
         if re.search('[ ]+\.innates', line):
-            pokedex[species].innates = list(map(abiFormat,re.findall('([ \{]\w+)', line)))
+            pokedex[species].innates = list(map(abiFormat,re.findall('ABILITY\w+', line)))
 
 species = ""
 with open(file_evo, 'r') as fp:
@@ -214,6 +233,7 @@ text = text.replace('"abilities"', 'abilities')
 text = text.replace('"innates"', 'innates')
 text = text.replace('"id"', 'id')
 text = text.replace('"', '\'')
+text = text.replace('\\\\', '\\')
 text = re.sub(r',\n[ ]{6}', ',', text)
 text = re.sub(r'\n[ ]{6}', '', text)
 text = re.sub(r'\n[ ]{4}\],', '],', text)
