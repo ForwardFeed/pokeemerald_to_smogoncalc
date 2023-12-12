@@ -21,8 +21,7 @@ def formatMacro(text):
     return " ".join(list(map(upcase_first_letter, text.split("_"))))
 
 def filterAbi(text):
-    text = text.replace('ABILITY_', '')
-    return formatMacro(text)
+    return text
 def filterMons(text):
     text = text.replace('SPECIES_', '')
     return formatMacro(text)
@@ -41,7 +40,25 @@ def isInDicOrInt(macro, dic):
        return int(dic[macro])
     else:
        return int(macro)
-
+       
+def abilityNaming():
+    dic = {}
+    file_abis = config['root'] + config['abilities']
+    whenRead = False
+    with open(file_abis, 'r') as fp:
+        lines = fp.readlines()
+        for line in lines:
+            if not whenRead and re.search('gAbilityNames', line):
+                whenRead = True
+                continue
+            if re.search('gAbilityDescriptionPointers', line):
+                break
+            if re.search('\[ABILITY_', line):
+                macro = re.search('ABILITY_[^\]]+', line).group()
+                val = re.search('(?<=\").*(?=\")', line).group()
+                dic[macro] = val
+    return dic
+    
 def resolveComplexMacros(macro, dic):
     macro = re.findall('[^\s$]+', macro)
         
@@ -69,8 +86,7 @@ def recurseAllMacros(file_path, dic = {}):
         #print(str(r) + ' interation of ' + file_path)
     return dic
          
-
-def readAllMacros(file_path, dic = {}):
+def readAllMacros(file_path, dic = {}, corDic = {}):
     with open(file_path, 'r') as fp:
         lines = fp.readlines()
         for line in lines:
@@ -99,18 +115,25 @@ def readAllMacros(file_path, dic = {}):
                             if "MAYNEEDRECURSION" not in dic:
                                 dic["MAYNEEDRECURSION"] = macro
                             continue
+                if macro in corDic:
+                    macro = corDic[macro]
                 dic[macro] = val
     return dic
 
 def macroToArray(dic, pattern, nameFiltring):
     arr = [None] * len(dic.keys())
+    if "MAYNEEDRECURSION" in dic:
+        del dic["MAYNEEDRECURSION"]
     for macro in dic.keys():
         if re.search(pattern, macro):
             val = int(dic[macro])
             arr[val] = nameFiltring(macro)
     return list(filter(lambda a: a != None, arr))
 
-abis = macroToArray(readAllMacros(file_abis), "^ABILITY_", filterAbi)
+
+
+abis_corrections = abilityNaming()
+abis = macroToArray(readAllMacros(file_abis,{},abis_corrections), ".", filterAbi)
 abis = "var GEN3_ABILITIES = " + json.dumps(json.loads(jsonpickle.encode(abis, unpicklable=False)),indent=2)
 mons = macroToArray(readAllMacros(file_mons), "^SPECIES_", filterMons)
 mons = "var GEN3_MONS = " + json.dumps(json.loads(jsonpickle.encode(mons, unpicklable=False)),indent=2)
