@@ -138,7 +138,7 @@ def AttrToAttr(attr, line):
 class Move:
     def __init__(self):
         self.bp = 0 #power
-        self.type = ""
+        self.type = "Normal"
         self.category = "" #split
         self.acc = 0 #accuracy
         self.target = ""
@@ -146,6 +146,8 @@ class Move:
         self.flags = []
         self.chance = 0 #secondaryEffectChance
         self.arg = "" #argument
+    def addFlags(self, list):
+        self.flags += list
 file_moves = config['root'] + config['moves']
 
 #allowed flags mean that if thoses are checked, it's like it's true.
@@ -190,11 +192,17 @@ with open(file_moves, 'r') as fp:
         if attribute:
             if len(attribute) > 2:
                 (a,b,c) = attribute
-                setattr(moveDict[name], a, b)
+                if a == "flags":
+                    moveDict[name].addFlags(b)
+                else:
+                    setattr(moveDict[name], a, b)
                 setattr(moveDict[name], c, True)
             else:
                 (a,b) = attribute
-                setattr(moveDict[name], a, b) 
+                if a == "flags":
+                    moveDict[name].addFlags(b)
+                else:
+                    setattr(moveDict[name], a, b)
         
 #trim data that can be implicitely found
 finalMoveDict = {}
