@@ -151,12 +151,13 @@ class Move:
 file_moves = config['root'] + config['moves']
 
 #allowed flags mean that if thoses are checked, it's like it's true.
-allowedIFDEFFlags = {" REBALANCED_VERSION","B_USE_FROSTBITE == TRUE","B_UPDATED_MOVE_DATA >= GEN_4","B_UPDATED_MOVE_DATA >= GEN_6","B_UPDATED_MOVE_DATA >= GEN_5","B_UPDATED_MOVE_DATA >= GEN_7","B_UPDATED_MOVE_DATA != GEN_5","B_HIDDEN_POWER_DMG >= GEN_6","B_UPDATED_MOVE_DATA >= GEN_8","B_UPDATED_MOVE_DATA == GEN_6"}
+allowedIFDEFFlags = {" REBALANCED_VERSION","B_USE_FROSTBITE == TRUE","B_UPDATED_MOVE_DATA >= GEN_4","B_UPDATED_MOVE_DATA >= GEN_6","B_UPDATED_MOVE_DATA >= GEN_5","B_UPDATED_MOVE_DATA >= GEN_7","B_UPDATED_MOVE_DATA != GEN_5","B_HIDDEN_POWER_DMG >= GEN_6","B_UPDATED_MOVE_DATA >= GEN_8",}
 
 moveDict = {}
 name = ""
 missedDict = {}
 f_ifdef = True
+f_hasBeenDef = False
 with open(file_moves, 'r') as fp:
     lines = fp.readlines()
     for line in lines:
@@ -176,13 +177,19 @@ with open(file_moves, 'r') as fp:
             case = case.group()
             if case in allowedIFDEFFlags:
                 f_ifdef = True
+                f_hasBeenDef = True
             else:
                 f_ifdef = False
+        if re.search('#elif', line):
+            if f_hasBeenDef:
+                f_ifdef = False
         if re.search('#else', line):
-            f_ifdef = not f_ifdef
+            if f_hasBeenDef:
+                f_ifdef = False
         if re.search('#endif', line):
             f_ifdef = True
-        if not f_ifdef:
+            f_hasBeenDef = False
+        if not f_ifdef :
             continue
         attribute = re.search('(?<=\.)\w+', line)
         if attribute == None:
